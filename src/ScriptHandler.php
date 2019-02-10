@@ -128,6 +128,28 @@ class ScriptHandler
 		}
 	}
 
+	public function insertIntoDB($fileArray){
+		try {
+			$out = fopen('php://stdout', 'w'); //output handler
+			foreach ($fileArray as $key => $value) {
+				$name= $value[0];
+				$surname= $value[1];
+				$email= $value[2];
+
+				$user = new User();
+				$user->setName(ucfirst(strtolower($name)));
+				$user->setSurname(ucfirst(strtolower($surname)));
+				$user->setEmail(strtolower($email));
+				$this->entityManager->persist($user);
+			}
+			$this->entityManager->flush();
+			fclose($out);
+		}catch (\Exception $e){
+			die ("Having Problem inserting the records into the table. No record is inserted. \nError message : ".$e->getMessage()."\n");
+		}
+
+	}
+
 	public function createTables(){
 		try {
 	    	// Create tables in db
@@ -185,4 +207,15 @@ class ScriptHandler
 		return filter_var($email, FILTER_VALIDATE_EMAIL);
 	}
 
+	public function getHelp(){
+		$help = "--file [csv file name] – this is the name of the CSV to be parsed, default: users.csv\n";
+		$help .= "--create_table – this will cause the PostgreSQL users table to be built (and no further action will be taken)\n";
+		$help .= "--dry_run – this will be used with the --file directive in the instance that we want to run the script but not insert into the DB. All other functions will be executed, but the database won't be altered.\n";
+		$help .= "-u – PostgreSQL database name, default: postgres\n";
+		$help .= "-u – PostgreSQL username, default: postgres\n";
+		$help .= "-p – PostgreSQL password, default: password\n";
+		$help .= "-h – PostgreSQL host, default: localhost\n";
+		$help .= "--help – output the list of directives with details\n";
+		return $help;
+	} 
 }
