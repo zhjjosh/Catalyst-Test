@@ -128,7 +128,6 @@ class ScriptHandler
 		}
 	}
 
-
 	public function createTables(){
 		try {
 	    	// Create tables in db
@@ -142,5 +141,48 @@ class ScriptHandler
 	}
 
 
+	public function readCsvFile($file_name)
+	{
+		try {
+			$handle = fopen($file_name, "r");
+		}catch (\Exception $e) {
+			die ("Having problem reading the CSV file, please check the file and try again. No record is inserted. \n");
+		}
+		$out = fopen('php://stdout', 'w'); //output handler
+		$outExist = false;
+		$array  = [];
+		$int = 0;
+		while (($data   = fgetcsv($handle, 10000, ",")) !== FALSE) {
+			if($int> 0 && isset($data[2])){
+				$email = $this->cleanEmail($data[2]);
+				if ($this->validateEmail($email)){
+					$array[] = $data;
+				}else{
+					if(empty($email)){
+						fputs($out, "Row $int: Email Cannot be blank\n"); 
+					}else{
+						fputs($out, "Row $int: $email is an invalid email\n");
+					}
+					$outExist = true;
+				}
+			}
+			$int++;
+		}
+		
+		fclose($handle);
+		fclose($out);
+		return $outExist ? [] : $array;
+	}
+
+
+	public function cleanEmail($email)
+	{
+		return strtolower(filter_var(trim($email), FILTER_SANITIZE_EMAIL));
+	}
+
+	public function validateEmail($email)
+	{
+		return filter_var($email, FILTER_VALIDATE_EMAIL);
+	}
 
 }
