@@ -10,7 +10,7 @@ class ScriptHandler
 {
 
 	private $argList;
-	
+	private $entityManager;
 
 	public function __construct($argv)
 	{
@@ -25,11 +25,33 @@ class ScriptHandler
 			"help" => false
 		);
 		$this->setArgList($argv);
-		
+		$this->setEntityManager();
 	}
 
 	public function getArgList(){
 		return $this->argList;
+	}
+
+	public function getEntityManager(){
+		return $this->entityManager;
+	}
+
+	public function setEntityManager(){
+		// Create a simple "default" Doctrine ORM configuration for Annotations
+		$isDevMode = true;
+		$config = Setup::createAnnotationMetadataConfiguration(array(__DIR__), $isDevMode);
+
+		// database configuration parameters
+		$conn = array(
+			'dbname' => $this->argList['db_name'],
+			'user' => $this->argList['db_user'],
+			'password' => $this->argList['db_password'],
+			'host' => $this->argList['db_host'],
+			'driver' => 'pdo_pgsql',
+		);
+
+// obtaining the entity manager
+		$this->entityManager =  EntityManager::create($conn, $config);
 	}
 
 	public function setArgList($argv){
@@ -97,4 +119,13 @@ class ScriptHandler
 		}
 		$this->argList = $this->argList;
 	}
+
+	public function testConnection(){
+		try {
+			$this->entityManager->getConnection()->connect();
+		} catch (\Exception $e) {
+			die ("Cannot connect to the database, please check the database, username, password and host are correct\n");
+		}
+	}
+
 }
