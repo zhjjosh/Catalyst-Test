@@ -128,4 +128,19 @@ class ScriptHandler
 		}
 	}
 
+
+	public function createTables(){
+		try {
+	    	// Create tables in db
+			$schemaTool = new SchemaTool($this->entityManager);
+			$classes = $this->entityManager->getMetadataFactory()->getAllMetadata();
+			$schemaTool->dropSchema($classes);
+			$schemaTool->createSchema($classes);
+		} catch (Exception $e) {
+			die ("Having Problem creating the tables. No record is inserted. \nError message : ".$e->getMessage()."\n");
+		}
+	}
+
+
+
 }
